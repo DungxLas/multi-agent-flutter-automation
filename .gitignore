@@ -1,0 +1,21 @@
+# Python virtual environment
+venv/
+ENV/
+env/
+
+# Sensitive credentials
+.env
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Agent output files (optional, ignore if you want to keep repo clean)
+outputs/
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
