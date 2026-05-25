@@ -23,3 +23,5 @@ outputs/
 # Antigravity CLI
 .antigravitycli/
 
+# Gemini API Cache
+.gemini_api_cache.json

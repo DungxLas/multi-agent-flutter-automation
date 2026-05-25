@@ -2,6 +2,7 @@ import os
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
+from .utils import generate_content_with_retry
 
 class GeneratedCode(BaseModel):
     file_path: str = Field(description="Đường dẫn lưu file code, ví dụ: lib/presentation/pages/login_page.dart")
@@ -16,7 +17,8 @@ class UIAgent:
         
         if not self.is_mocked:
             self.client = genai.Client(api_key=self.api_key)
-            self.model_name = 'gemini-2.5-flash'
+            self.model_name = os.getenv("GEMINI_PRIMARY_MODEL", "gemini-3.5-flash")
+            self.fallback_model = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
         else:
             print("[UI Agent] Đang hoạt động ở chế độ giả lập (Mock Mode) vì chưa có GEMINI_API_KEY hợp lệ.")
 
@@ -42,9 +44,9 @@ class UIAgent:
         """
         
         try:
-            # Gọi Gemini API với Structured Output qua Pydantic
-            response = self.client.models.generate_content(
-                model=self.model_name,
+            # Gọi Gemini API với Structured Output qua Pydantic sử dụng retry helper
+            response = generate_content_with_retry(
+                client=self.client,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
@@ -52,6 +54,8 @@ class UIAgent:
                     response_schema=GeneratedCode,
                     temperature=0.2,
                 ),
+                primary_model=self.model_name,
+                fallback_model=self.fallback_model
             )
             
             # SDK sẽ tự động parse JSON sang Object Pydantic nhờ response_schema
